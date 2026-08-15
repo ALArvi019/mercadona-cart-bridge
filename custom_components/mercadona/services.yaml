@@ -1,0 +1,37 @@
+anadir:
+  target:
+    entity:
+      integration: mercadona
+      domain: todo
+  fields:
+    producto:
+      required: true
+      example: dos paquetes de arroz
+      selector:
+        text:
+    cantidad:
+      required: false
+      example: 2
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+
+quitar:
+  target:
+    entity:
+      integration: mercadona
+      domain: todo
+  fields:
+    producto:
+      required: true
+      example: mantequilla
+      selector:
+        text:
+
+vaciar_carrito:
+  target:
+    entity:
+      integration: mercadona
+      domain: todo

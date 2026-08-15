@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lista de la compra</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div id="pending-bar" class="pending-bar" hidden></div>
+
+<main class="layout">
+
+  <section class="pane" id="cart-pane">
+    <header class="pane-head">
+      <h1>En el carrito <span id="cart-count" class="count">0</span></h1>
+      <div class="head-right">
+        <span id="cart-total" class="total"></span>
+        <button id="refresh" class="icon-btn" title="Actualizar" aria-label="Actualizar">&#10227;</button>
+      </div>
+    </header>
+    <div id="cart-list" class="list"></div>
+    <p id="cart-empty" class="empty" hidden>El carrito está vacío.<br><small>Pide algo a Google o toca un habitual.</small></p>
+  </section>
+
+  <section class="pane" id="regulars-pane">
+    <header class="pane-head">
+      <h1>Habituales</h1>
+      <input id="search" type="search" placeholder="Buscar producto…" autocomplete="off" enterkeyhint="search">
+    </header>
+    <div id="regulars-grid" class="grid"></div>
+    <p id="regulars-empty" class="empty" hidden>Sin resultados.</p>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" hidden></div>
+<div id="banner" class="banner" hidden></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

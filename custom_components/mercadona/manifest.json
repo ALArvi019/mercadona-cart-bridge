@@ -1,0 +1,13 @@
+{
+  "domain": "mercadona",
+  "name": "Mercadona",
+  "codeowners": ["@ALArvi019"],
+  "config_flow": true,
+  "dependencies": ["http", "frontend"],
+  "documentation": "https://github.com/ALArvi019/mercadona-cart-bridge",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/ALArvi019/mercadona-cart-bridge/issues",
+  "requirements": ["httpx>=0.27.0", "gkeepapi>=0.17.1"],
+  "version": "0.1.0"
+}

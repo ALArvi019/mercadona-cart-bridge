@@ -1,0 +1,26 @@
+name: Publicar versión
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  comprobar:
+    name: La versión del manifest coincide con la etiqueta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # HACS instala lo que diga el manifest, no la etiqueta. Si no coinciden, la
+      # gente acaba con una versión instalada que no es la que cree tener.
+      - name: Comparar
+        run: |
+          etiqueta="${GITHUB_REF#refs/tags/}"
+          etiqueta="${etiqueta#v}"
+          manifest=$(python -c "import json;print(json.load(open('custom_components/mercadona/manifest.json'))['version'])")
+          echo "etiqueta:  $etiqueta"
+          echo "manifest:  $manifest"
+          if [ "$etiqueta" != "$manifest" ]; then
+            echo "::error::La etiqueta ($etiqueta) y el manifest ($manifest) no coinciden. Actualiza manifest.json antes de publicar."
+            exit 1
+          fi

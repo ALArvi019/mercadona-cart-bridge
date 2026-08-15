@@ -1,0 +1,92 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Mercadona",
+        "description": "Mercadona does not allow automated sign-in: its login requires a reCAPTCHA that can only be solved in a browser or in their app. So this asks for a **session token** you extract once, instead of a username and password. The integration renews it on its own from then on.\n\n**Option A — from the browser (no root)**\n\n1. Sign in at `tienda.mercadona.es`.\n2. Open developer tools (F12) → **Network** tab.\n3. Sign out and back in: a request to `api/auth/tokens/` will appear.\n4. Copy the `refresh_token` value from its response.\n\n**Option B — from the Android app (needs root)**\n\nThe app stores the session in `shared_prefs`, under the `userJson` key:\n\n```\nadb shell \"su -c 'cat /data/data/es.mercadona.tienda/shared_prefs/es.mercadona.tienda_preferences.xml'\"\n```\n\nInside that JSON, the value is at `auth.refresh_token`.\n\nTreat the token like a password: it grants full access to the account. It lasts months and renews itself, so this is a one-off.",
+        "data": {
+          "refresh_token": "Session token (refresh_token)",
+          "warehouse": "Warehouse",
+          "postal_code": "Postal code"
+        },
+        "data_description": {
+          "refresh_token": "The refresh_token value you copied. It is long and starts with 'eyJ'.",
+          "warehouse": "Optional and rarely needed: with a session in place, Mercadona already knows which warehouse to serve. Only use it to force a different one, e.g. 'mad1'.",
+          "postal_code": "Optional. Taken from your account if left empty."
+        }
+      },
+      "keep": {
+        "title": "Add products by voice (optional)",
+        "description": "A Google speaker cannot send free text to Home Assistant. When you say *\"Hey Google, add toilet paper to my shopping list\"*, all it does is write it into a **Google Keep** list.\n\nThis integration uses that list as a **mailbox**: it reads it every few seconds, puts the product in your Mercadona cart and **deletes the entry from Keep**. You never look at Keep; your list is still the cart.\n\nReading it needs a Google *master token*, obtained with `gpsoauth`:\n\n1. In an incognito window, open `accounts.google.com/EmbeddedSetup` and sign in with the speakers' account.\n2. Accept the terms shown. The page will go blank: that is expected.\n3. Developer tools → **Application → Cookies** → copy the `oauth_token` cookie.\n4. Exchange it using the `tools/keep_setup.py` script in the repository.\n\nIf you would rather not use voice, leave both fields empty: the panel and entities work all the same.\n\nReconfiguring is mostly for turning voice on after trying everything else. Leave the fields empty to disable voice.",
+        "data": {
+          "gkeep_email": "Google account",
+          "gkeep_master_token": "Master token"
+        },
+        "data_description": {
+          "gkeep_email": "The account your speakers talk to. It can be a secondary account with the list shared.",
+          "gkeep_master_token": "Starts with 'aas_et/'. It grants broad access to that Google account: keep it safe."
+        }
+      },
+      "keep_list": {
+        "title": "Which one is your shopping list?",
+        "description": "These are the lists found in Keep, with how many unchecked items each one has.\n\nPick the one the Assistant fills. Choose carefully: on startup, whatever is unchecked in that list will be added to the cart.",
+        "data": {
+          "gkeep_list_name": "List"
+        }
+      },
+      "reauth_confirm": {
+        "title": "The Mercadona session expired",
+        "description": "The token stopped working. This usually happens after changing your Mercadona password, signing out everywhere, or months without use.\n\nExtract a new one the same way as the first time and paste it here.",
+        "data": {
+          "refresh_token": "Session token (refresh_token)"
+        }
+      }
+    },
+    "error": {
+      "token_rechazado": "Mercadona rejected the token. Check you copied it whole and that it is the refresh_token, not the access_token.",
+      "sin_conexion": "Could not reach Mercadona. Check your connection and try again.",
+      "keep_rechazado": "Google rejected those credentials. The master token must start with 'aas_et/' and belong to the account given.",
+      "keep_sin_listas": "That account has no lists in Keep. Create one, or say something to your speaker so it creates it, and try again."
+    },
+    "abort": {
+      "already_configured": "That Mercadona account is already configured.",
+      "reauth_successful": "Session restored.",
+      "reconfigure_successful": "Settings saved."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Settings",
+        "data": {
+          "poll_seconds": "How often the voice mailbox is checked, in seconds",
+          "max_batch": "Maximum products per poll"
+        },
+        "data_description": {
+          "poll_seconds": "At 15 seconds, whatever you dictate shows up in the cart almost immediately.",
+          "max_batch": "Stops a list with accumulated history from dumping everything into the cart at once. The rest comes in on later polls."
+        }
+      }
+    }
+  },
+  "entity": {
+    "todo": {
+      "cart": {
+        "name": "Cart"
+      }
+    },
+    "sensor": {
+      "cart_total": {
+        "name": "Cart total"
+      },
+      "cart_items": {
+        "name": "Items in cart"
+      }
+    },
+    "binary_sensor": {
+      "session": {
+        "name": "Mercadona session"
+      }
+    }
+  }
+}

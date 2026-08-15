@@ -1,0 +1,25 @@
+# --- Secretos: NUNCA deben entrar al repo ---
+.env
+.env.*
+!.env.example
+*.token
+*.har
+token.json
+keep_state.json
+secrets/
+data/
+*.db
+*.sqlite3
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv*/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# --- Varios ---
+.DS_Store
+*.log
