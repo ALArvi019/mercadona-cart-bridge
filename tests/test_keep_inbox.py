@@ -5,7 +5,7 @@ tachados de compras pasadas. Procesarlos volcaría todo ese historial al carrito
 """
 from __future__ import annotations
 
-from app.core.keep import KeepInbox
+from app.core.keep import KeepInbox, normalize_list_names
 
 
 class FakeItem:
@@ -96,3 +96,64 @@ def test_titulo_insensible_a_mayusculas_y_espacios():
     inbox = KeepInbox("x@y.z", "token", "mi lista de la compra")
     inbox._keep = FakeKeep([note])
     assert inbox._drain_sync() == ["arroz"]
+
+
+# ---------------------------------------------------------------------------
+# Vigilar varias listas a la vez
+#
+# Google no deja elegir dónde escribe: la misma frase acaba en "Lista de la compra"
+# o en "Mi lista de la compra" según el idioma del altavoz. Cuando el buzón vigila
+# solo una y Google usa la otra, no salta ningún error, simplemente no llega nunca
+# nada, que es el fallo más difícil de ver.
+# ---------------------------------------------------------------------------
+
+def inbox_over(notes: list[FakeNote], watching: object, max_batch: int = 15) -> KeepInbox:
+    inbox = KeepInbox("x@y.z", "token", watching, max_batch=max_batch)
+    inbox._keep = FakeKeep(notes)
+    return inbox
+
+
+def test_drena_todas_las_listas_vigiladas():
+    google = FakeNote("Lista de la compra", [FakeItem("salchichas")])
+    otra = FakeNote("Mi lista de la compra", [FakeItem("orégano")])
+    inbox = inbox_over([google, otra], ["Lista de la compra", "Mi lista de la compra"])
+
+    assert sorted(inbox._drain_sync()) == ["orégano", "salchichas"]
+    assert google.items[0].deleted is True
+    assert otra.items[0].deleted is True
+
+
+def test_no_toca_las_listas_que_no_se_vigilan():
+    vigilada = FakeNote("Lista de la compra", [FakeItem("salchichas")])
+    ajena = FakeNote("Películas", [FakeItem("John Wick")])
+    inbox = inbox_over([vigilada, ajena], ["Lista de la compra"])
+
+    assert inbox._drain_sync() == ["salchichas"]
+    assert ajena.items[0].deleted is False
+
+
+def test_el_tope_por_ciclo_cuenta_el_total_de_todas_las_listas():
+    una = FakeNote("Lista de la compra", [FakeItem(f"a{i}") for i in range(3)])
+    otra = FakeNote("Mi lista de la compra", [FakeItem(f"b{i}") for i in range(3)])
+    inbox = inbox_over([una, otra], ["Lista de la compra", "Mi lista de la compra"],
+                       max_batch=4)
+
+    assert len(inbox._drain_sync()) == 4
+    # Lo que sobra sigue en Keep, entra en el siguiente sondeo.
+    assert sum(1 for n in (una, otra) for i in n.items if not i.deleted) == 2
+
+
+def test_una_lista_configurada_como_texto_sigue_valiendo():
+    """Las entradas creadas antes de la 0.2.0 guardaban un solo nombre como cadena."""
+    note = FakeNote("Lista de la compra", [FakeItem("salchichas")])
+    inbox = inbox_over([note], "Lista de la compra")
+
+    assert inbox._drain_sync() == ["salchichas"]
+
+
+def test_normalize_list_names_admite_los_dos_formatos():
+    assert normalize_list_names("Lista de la compra") == ["Lista de la compra"]
+    assert normalize_list_names(["  Una  ", "Otra"]) == ["Una", "Otra"]
+    assert normalize_list_names("Una, Otra") == ["Una", "Otra"]
+    assert normalize_list_names(None) == []
+    assert normalize_list_names(["", "   "]) == []

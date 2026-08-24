@@ -28,10 +28,10 @@
         }
       },
       "keep_list": {
-        "title": "Which one is your shopping list?",
-        "description": "These are the lists found in Keep, with how many unchecked items each one has.\n\nPick the one the Assistant fills. Choose carefully: on startup, whatever is unchecked in that list will be added to the cart.",
+        "title": "Which are your shopping lists?",
+        "description": "These are the lists found in Keep, with how many unchecked items each one has.\n\nTick every list the Assistant might write to. Ticking more than one is usually right: Google gives you no say over where it writes, and the same phrase lands in \"Shopping list\" or \"My shopping list\" depending on the speaker's language.\n\nMind what you tick: on start-up, whatever is unchecked in those lists gets added to the cart.",
         "data": {
-          "gkeep_list_name": "List"
+          "gkeep_list_name": "Lists"
         }
       },
       "reauth_confirm": {

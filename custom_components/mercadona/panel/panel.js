@@ -7,6 +7,11 @@
 
 const REFRESH_MS = 20000;
 
+/* La hoja de estilos se cachea igual de fuerte que este módulo, así que hereda su
+   misma versión. Home Assistant sirve este fichero como /mercadona_panel/panel.js?v=X,
+   y ese X es el del manifest. */
+const VERSION = new URL(import.meta.url).searchParams.get('v') || '0';
+
 class MercadonaPanel extends HTMLElement {
   static get properties() {
     return { hass: {}, narrow: {}, route: {}, panel: {} };
@@ -39,10 +44,45 @@ class MercadonaPanel extends HTMLElement {
     this._timer = setInterval(() => {
       if (!document.hidden && !this._busy) this._load();
     }, REFRESH_MS);
+    this._watchHeight();
   }
 
   disconnectedCallback() {
     if (this._timer) clearInterval(this._timer);
+    removeEventListener('resize', this._onResize);
+  }
+
+  /* ---------------------------------------------------------------- alto
+   *
+   * Home Assistant monta el panel dentro de un <partial-panel-resolver> sin alto, asi
+   * que no hay ningun 100% del que tirar: si no se le da un alto explicito, el panel
+   * crece hasta el tamano de su contenido y las columnas dejan de hacer scroll.
+   *
+   * Se mide donde empieza el panel dentro del viewport y se reserva el resto. Medirlo
+   * en vez de asumir que empieza arriba del todo es a proposito: asi sigue valiendo si
+   * Home Assistant vuelve a cambiar el layout y le pone algo encima.
+   */
+  _watchHeight() {
+    this._onResize = () => this._fitHeight();
+    addEventListener('resize', this._onResize);
+    this._fitHeight();
+    // El primer reflow puede llegar despues del connectedCallback, sobre todo con la
+    // barra lateral plegable, asi que se repite en cuanto el navegador respira.
+    requestAnimationFrame(() => this._fitHeight());
+  }
+
+  _fitHeight() {
+    // Se mide con el panel colapsado a proposito. Con cualquier alto, el panel puede
+    // ser justo lo que hace desbordar la pagina, y entonces el origen que devuelve
+    // getBoundingClientRect viene contaminado por el scroll que el mismo ha provocado.
+    // A cero no desborda, no hay scroll, y lo que se mide es el hueco real que queda
+    // por encima. Todo ocurre dentro del mismo fotograma, asi que no se ve parpadear.
+    this.style.setProperty('--mercadona-panel-height', '0px');
+    const top = Math.max(0, Math.round(this.getBoundingClientRect().top));
+    this.style.setProperty(
+      '--mercadona-panel-height',
+      top > 0 ? `calc(100dvh - ${top}px)` : '100dvh',
+    );
   }
 
   /* ------------------------------------------------------------ estructura */
@@ -51,7 +91,7 @@ class MercadonaPanel extends HTMLElement {
     if (this._rendered) return;
     this._rendered = true;
     this.shadowRoot.innerHTML = `
-      <link rel="stylesheet" href="/mercadona_panel/style.css">
+      <link rel="stylesheet" href="/mercadona_panel/style.css?v=${VERSION}">
       <div id="banner" class="banner" hidden></div>
       <main class="layout">
         <section class="pane">
@@ -261,4 +301,11 @@ class MercadonaPanel extends HTMLElement {
   }
 }
 
-customElements.define('mercadona-panel', MercadonaPanel);
+/* Con la versión colgada de la URL, el navegador puede llegar a cargar este módulo dos
+   veces en la misma sesión: la versión vieja que ya tenía en caché y la nueva recién
+   instalada. Registrar el elemento dos veces lanza una excepción que deja el panel en
+   blanco, así que se comprueba antes. El que gana es el que se registró primero, hasta
+   que se recargue la página. */
+if (!customElements.get('mercadona-panel')) {
+  customElements.define('mercadona-panel', MercadonaPanel);
+}

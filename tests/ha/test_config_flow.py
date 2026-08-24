@@ -83,10 +83,37 @@ async def test_con_voz_deja_elegir_la_lista(hass: HomeAssistant, validar_ok) -> 
 
     assert paso_lista["step_id"] == "keep_list"
     final = await hass.config_entries.flow.async_configure(
-        paso_lista["flow_id"], {CONF_GKEEP_LIST: "Mi lista de la compra"}
+        paso_lista["flow_id"], {CONF_GKEEP_LIST: ["Mi lista de la compra"]}
     )
     assert final["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
-    assert final["data"][CONF_GKEEP_LIST] == "Mi lista de la compra"
+    assert final["data"][CONF_GKEEP_LIST] == ["Mi lista de la compra"]
+
+
+async def test_se_pueden_vigilar_varias_listas(hass: HomeAssistant, validar_ok) -> None:
+    """Google reparte la compra entre varias listas segun el idioma del altavoz.
+
+    Vigilar solo una y que Google use la otra no da ningun error, simplemente no
+    aparece nunca nada, asi que hay que poder marcar todas las candidatas.
+    """
+    paso_keep = await _empezar(hass)
+    with patch(
+        "custom_components.mercadona.config_flow._list_keep_notes",
+        return_value=[("Lista de la compra", 5), ("Mi lista de la compra", 0),
+                      ("Recetas", 0)],
+    ):
+        paso_lista = await hass.config_entries.flow.async_configure(
+            paso_keep["flow_id"],
+            {CONF_GKEEP_EMAIL: "alguien@gmail.com", CONF_GKEEP_TOKEN: "aas_et/x"},
+        )
+
+    final = await hass.config_entries.flow.async_configure(
+        paso_lista["flow_id"],
+        {CONF_GKEEP_LIST: ["Lista de la compra", "Mi lista de la compra"]},
+    )
+    assert final["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
+    assert final["data"][CONF_GKEEP_LIST] == [
+        "Lista de la compra", "Mi lista de la compra",
+    ]
 
 
 async def test_token_rechazado_no_rompe_el_flujo(hass: HomeAssistant) -> None:

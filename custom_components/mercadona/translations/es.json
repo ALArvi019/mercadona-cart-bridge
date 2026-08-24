@@ -28,10 +28,10 @@
         }
       },
       "keep_list": {
-        "title": "¿Cuál es tu lista de la compra?",
-        "description": "Estas son las listas encontradas en Keep, con cuántos elementos sin marcar tiene cada una.\n\nElige la que rellena el Asistente. Ojo con acertar: al arrancar, lo que haya sin marcar en esa lista se añadirá al carrito.",
+        "title": "¿Cuáles son tus listas de la compra?",
+        "description": "Estas son las listas encontradas en Keep, con cuántos elementos sin marcar tiene cada una.\n\nMarca todas en las que pueda escribir el Asistente. Conviene marcar más de una: Google no deja elegir dónde escribe, y la misma frase acaba en «Lista de la compra» o en «Mi lista de la compra» según el idioma del altavoz.\n\nOjo con lo que marcas: al arrancar, lo que haya sin marcar en esas listas se añadirá al carrito.",
         "data": {
-          "gkeep_list_name": "Lista"
+          "gkeep_list_name": "Listas"
         }
       },
       "reauth_confirm": {

@@ -94,6 +94,16 @@ def _list_keep_notes(email: str, master_token: str) -> list[tuple[str, int]]:
     return notes
 
 
+# Como llama Google a la lista de la compra segun idioma y version. Sirven para
+# premarcar las candidatas, no para filtrar: se ofrecen todas las listas de la cuenta.
+SUGGESTED_LIST_NAMES = {
+    "lista de la compra",
+    "mi lista de la compra",
+    "shopping list",
+    "my shopping list",
+}
+
+
 class MercadonaConfigFlow(ConfigFlow, domain=DOMAIN):
     """Alta de la integración."""
 
@@ -177,7 +187,12 @@ class MercadonaConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_keep_list(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Elegir cuál de las listas de Keep es la que rellena el Asistente.
+        """Elegir qué listas de Keep rellena el Asistente.
+
+        Se pueden marcar varias, y conviene. Google no deja elegir dónde escribe: la
+        misma frase puede acabar en "Lista de la compra" o en "Mi lista de la compra"
+        segun el idioma del altavoz o la cuenta. Vigilando todas las candidatas, la
+        compra aparece se llame como se llame la lista de ese dia.
 
         Se muestran con el número de elementos pendientes porque es fácil tener varias
         con nombres parecidos, y apuntar a la equivocada volcaría cosas al carrito.
@@ -193,10 +208,20 @@ class MercadonaConfigFlow(ConfigFlow, domain=DOMAIN):
             }
             for title, pending in self._keep_notes
         ]
+        # Vienen premarcadas las que se llaman como suele llamarlas Google, que es lo
+        # que acierta en la mayoría de casas.
+        sugeridas = [
+            title for title, _pending in self._keep_notes
+            if title.strip().lower() in SUGGESTED_LIST_NAMES
+        ]
         schema = vol.Schema(
             {
-                vol.Required(CONF_GKEEP_LIST): SelectSelector(
-                    SelectSelectorConfig(options=options, mode=SelectSelectorMode.DROPDOWN)
+                vol.Required(CONF_GKEEP_LIST, default=sugeridas): SelectSelector(
+                    SelectSelectorConfig(
+                        options=options,
+                        mode=SelectSelectorMode.LIST,
+                        multiple=True,
+                    )
                 )
             }
         )

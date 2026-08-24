@@ -34,7 +34,7 @@
 * { box-sizing: border-box; }
 
 :host {
-  margin: 0; height: 100%;
+  margin: 0;
   background: var(--bg); color: var(--ink);
   font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
@@ -218,10 +218,19 @@
 }
 
 
-/* Dentro de Home Assistant el panel ocupa el hueco entre la barra superior y el
-   borde; el alto lo fija el propio panel. */
+/* El alto del panel se lo tiene que dar él mismo.
+
+   Home Assistant monta los paneles propios dentro de un <partial-panel-resolver> que
+   no tiene alto: es un elemento `inline` con `height: auto`. Un `height: 100%` aquí se
+   resuelve contra la nada, el panel crece hasta el tamaño de su contenido y las dos
+   columnas dejan de hacer scroll por dentro, que es justo lo que se rompió al
+   actualizar a Home Assistant 2026.
+
+   Asi que se mide con el viewport, no con el padre. El JS calcula dónde empieza el
+   panel y ajusta la variable; el valor de aquí es el que vale mientras tanto y si
+   algún día el JS no llega a correr. */
 :host {
   display: block;
-  height: 100%;
+  height: var(--mercadona-panel-height, 100dvh);
   overflow: hidden;
 }

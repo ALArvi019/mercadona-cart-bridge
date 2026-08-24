@@ -33,7 +33,7 @@ from .const import (
 )
 from .core.catalog import Catalog
 from .core.client import MercadonaClient, SessionExpired
-from .core.keep import KeepInbox, poll_loop
+from .core.keep import KeepInbox, normalize_list_names, poll_loop
 from .core.matching import (
     AMBIGUITY_GAP,
     CONFIDENT_SCORE,
@@ -158,12 +158,12 @@ class MercadonaCoordinator(DataUpdateCoordinator[MercadonaData]):
 
         email = entry.data.get(CONF_GKEEP_EMAIL)
         token = entry.data.get(CONF_GKEEP_TOKEN)
-        list_name = entry.data.get(CONF_GKEEP_LIST)
-        if email and token and list_name:
+        list_names = normalize_list_names(entry.data.get(CONF_GKEEP_LIST))
+        if email and token and list_names:
             inbox = KeepInbox(
                 email,
                 token,
-                list_name,
+                list_names,
                 max_batch=entry.options.get(CONF_MAX_BATCH, DEFAULT_MAX_BATCH),
             )
             interval = entry.options.get(CONF_POLL_SECONDS, DEFAULT_POLL_SECONDS)
@@ -171,7 +171,7 @@ class MercadonaCoordinator(DataUpdateCoordinator[MercadonaData]):
                 self.hass, poll_loop(inbox, self.async_handle_phrase, interval),
                 f"{DOMAIN}_keep",
             ))
-            _LOGGER.info("buzón de voz activo sobre la lista '%s'", list_name)
+            _LOGGER.info("buzón de voz activo sobre %s", ", ".join(list_names))
         else:
             _LOGGER.info("sin Google Keep configurado: la voz queda desactivada")
 

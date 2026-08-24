@@ -7,6 +7,7 @@ desde fuera de casa por HTTPS.
 """
 from __future__ import annotations
 
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -21,7 +22,24 @@ from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL
 _LOGGER = logging.getLogger(__name__)
 
 PANEL_DIR = Path(__file__).parent / "panel"
-PANEL_JS = f"/{DOMAIN}_panel/panel.js"
+
+
+def _version() -> str:
+    """Versión del manifest, para colgarla de la URL del panel.
+
+    Sin esto, actualizar la integración no cambia la interfaz: el navegador guarda el
+    módulo del panel en su caché y sigue sirviendo el de antes hasta que alguien hace
+    una recarga forzada, que nadie hace. Con la versión en la URL, cada actualización
+    es una URL nueva y la caché deja de estorbar.
+    """
+    try:
+        manifest = json.loads((Path(__file__).parent / "manifest.json").read_text())
+        return str(manifest.get("version", "0"))
+    except (OSError, ValueError):
+        return "0"
+
+
+PANEL_JS = f"/{DOMAIN}_panel/panel.js?v={_version()}"
 
 
 async def async_register_panel(hass: HomeAssistant) -> None:

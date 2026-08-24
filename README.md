@@ -83,6 +83,12 @@ escribirlo en una lista de **Google Keep**. Por eso esa lista se usa como **buz�
 integración la lee cada pocos segundos, mete el producto en el carrito, y borra la
 entrada. Nunca hay que mirar Keep, la lista sigue siendo el carrito.
 
+**Marca varias listas.** Google no deja elegir en cuál escribe: la misma frase acaba en
+«Lista de la compra» o en «Mi lista de la compra» según el idioma del altavoz, la cuenta
+o la versión de la app. Si vigilas solo una y Google usa la otra, no salta ningún error,
+simplemente no aparece nunca nada. En la configuración salen todas las listas de la
+cuenta y se pueden marcar las que haga falta.
+
 Hace falta un *master token* de Google, que se obtiene una vez. El razonamiento completo
 y los pasos están en [docs/google-keep.md](docs/google-keep.md).
 
