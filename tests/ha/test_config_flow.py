@@ -160,12 +160,12 @@ async def test_reconfigurar_activa_la_voz(hass) -> None:
         )
 
     final = await hass.config_entries.flow.async_configure(
-        paso_lista["flow_id"], {CONF_GKEEP_LIST: "Mi lista de la compra"}
+        paso_lista["flow_id"], {CONF_GKEEP_LIST: ["Mi lista de la compra"]}
     )
 
     assert final["type"] == data_entry_flow.FlowResultType.ABORT
     assert final["reason"] == "reconfigure_successful"
     # La voz queda configurada y la sesión de Mercadona intacta.
-    assert entry.data[CONF_GKEEP_LIST] == "Mi lista de la compra"
+    assert entry.data[CONF_GKEEP_LIST] == ["Mi lista de la compra"]
     assert entry.data[CONF_REFRESH_TOKEN] == "token-guardado"
     assert entry.data["postal_code"] == "28001"
